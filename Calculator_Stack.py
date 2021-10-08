@@ -1,21 +1,20 @@
 # Python program to convert infix expression to postfix
 
 # Class to convert the expression
+from Calculator import *
+
+
 class Stack:
 
     # Constructor to initialize the class variables
-    def __init__(self, capacity):
-        self.top = -1
-        self.capacity = capacity
+    def __init__(self):
+        self.top = 0
         # This array is used a stack
         self.array = []
-        # Precedence setting
-        self.output = []
-        self.precedence = {'+': 1, '-': 1, '*': 2, '/': 2, '^': 3}
 
     # check if the stack is empty
     def isEmpty(self):
-        if self.top == -1:
+        if self.top == 0:
             return True
         else:
             return False
@@ -30,14 +29,9 @@ class Stack:
             self.top -= 1
             return self.array.pop()
         else:
-            return "$"
+            return "Error: Can't pop an empty stack."
 
     # Push the element to the stack
     def push(self, op):
         self.top += 1
         self.array.append(op)
-
-    # A utility function to check is the given character
-    # is operand
-    def isOperand(self, ch):
-        return ch.isalpha()
