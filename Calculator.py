@@ -27,41 +27,67 @@ OP_NOT_FOUND: str = "Operator not found"
 OPERATORS: str = "+-*/^"
 
 
-def infix_to_postfix(tokens):
+def infix_to_postfix(tokens):  # Tokens --> ["69+420+666"]
     operators_stack = Stack()
     postfix_list = []
-    for i in tokens[0]:
+    infix_string = tokens[0]
+    infix_list = []
+    num_str = ""
+    # Iterate over the expression for conversion
+    for i in range(len(infix_string)):
+        if infix_string[i] not in OPERATORS and infix_string[i] != "(" and infix_string[i] != ")":
+            num_str += str(infix_string[i])
+            if i == len(infix_string) - 1:
+                infix_list.append(num_str)
+        else:
+            if num_str != "":
+                infix_list.append(num_str)  # "534"
+            infix_list.append(infix_string[i])  # "+"
+            num_str = ""
+
+    for i in infix_list:
+
+        # If the character is an operand,
+        # add it to output
         if i not in OPERATORS and i != "(" and i != ")":
             postfix_list.append(i)
 
+        # If the character is an '(', push it to stack
         elif i == "(":
             operators_stack.push(i)
 
-        elif i == ")":
-            while operators_stack.peek() != "(":
+        # If the scanned character is an ')', pop and
+        # output from the stack until and '(' is found
+        elif i == ')':
+            while (not operators_stack.isEmpty()) and operators_stack.peek() != '(':
                 postfix_list.append(operators_stack.pop())
             operators_stack.pop()
 
-        elif get_precedence(i) > get_precedence(operators_stack.peek()) or operators_stack.is_empty() or operators_stack.peek() == "(":
-            operators_stack.push(i)
-
-        elif get_precedence(i) <= get_precedence(operators_stack.peek()):
-
-            while get_precedence(i) <= get_precedence(operators_stack.peek()) and operators_stack.peek() != "(":
+        # An operator is encountered
+        else:
+            while not operators_stack.isEmpty() and i_not_greater(i, operators_stack):
                 postfix_list.append(operators_stack.pop())
-
             operators_stack.push(i)
 
-    while not operators_stack.is_empty():
-        postfix_list.append(operators_stack.peek())
-        operators_stack.pop()
+    # pop all the operator from the stack
+    while not operators_stack.isEmpty():
+        postfix_list.append(operators_stack.pop())
 
     return postfix_list  # TODO
 
 
 # -----  Evaluate RPN expression -------------------
 def eval_postfix(postfix_tokens):
-    return 0  # TODO
+    operand_stack = Stack()
+    for i in postfix_tokens:
+        if i not in OPERATORS:
+            operand_stack.push(i)
+        elif i in OPERATORS:
+            operand_one = float(operand_stack.pop())
+            operand_two = float(operand_stack.pop())
+            result = apply_operator(i, operand_one, operand_two)  # (5,5,+) > (10)
+            operand_stack.push(result)
+    return operand_stack.pop()
 
 
 # Method used in REPL
@@ -113,4 +139,12 @@ def get_associativity(op: str):
 def tokenize(expr: str):
     return None  # TODO
 
+
 # TODO Possibly more methods
+def i_not_greater(i, operator_stack):
+    if operator_stack.peek() in OPERATORS:
+        a = get_precedence(i)
+        b = get_precedence(operator_stack.peek())
+        return True if a <= b else False
+    else:
+        return False
