@@ -79,12 +79,13 @@ def infix_to_postfix(tokens):  # Tokens --> ["69+420+666"]
             # Append operator to the list
             infix_list.append(infix_string[i])  # "+"
 
-            # Multiply automatically if an operand is next to a parenthesis
+            # Multiply if an operand is next to a parenthesis
             # Code snippet needs to be after the ")" has been appended
             if infix_string[i] == ")" and i != len(infix_string) - 1:
                 if infix_string[i + 1].isnumeric():
                     infix_list.append("*")
 
+            # Multiply if left and right parenthesis are next to each other
             if infix_string[i] == ")" and i != len(infix_string) - 1:
                 if infix_string[i + 1] == "(":
                     infix_list.append("*")
