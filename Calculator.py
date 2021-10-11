@@ -2,6 +2,7 @@
 from math import nan
 from enum import Enum
 from Calculator_Stack import Stack
+from decimal import *
 
 # A calculator for rather simple arithmetic expressions.
 # Your task is to implement the missing functions so the
@@ -33,22 +34,67 @@ def infix_to_postfix(tokens):  # Tokens --> ["69+420+666"]
     infix_string = tokens[0]
     infix_list = []
     num_str = ""
+
+    # Raise error if insufficient parentheses or no operators
+    if infix_string.count("(") != infix_string.count(")") or not containsAny(OPERATORS, infix_string):
+        raise ValueError(MISSING_OPERATOR)
+
     # Iterate over the expression for conversion
     for i in range(len(infix_string)):
+
+        # Not an operator and not parenthesis
         if infix_string[i] not in OPERATORS and infix_string[i] != "(" and infix_string[i] != ")":
             num_str += str(infix_string[i])
             if i == len(infix_string) - 1:
                 infix_list.append(num_str)
+        # If i is an operator
         else:
-            if num_str != "":
+            if num_str != "":  # Append number string to list if not empty
                 infix_list.append(num_str)  # "534"
+
+            # Multiply automatically if an operand is next to a parenthesis
+            if infix_string[i] == "(" and i != 0:
+                if infix_string[i - 1].isnumeric():
+                    infix_list.append("*")
+
+            # Raise error if two operators are next to each other
+            if infix_string[i] in OPERATORS and i != 0:
+                if infix_string[i - 1] in OPERATORS:
+                    raise ValueError(MISSING_OPERAND)
+
+            # Raise error if last character is an operator
+            if infix_string[i] in OPERATORS and i == len(infix_string) - 1:
+                raise ValueError(MISSING_OPERAND)
+
+            # Raise error if an operator and a parentheses are next to each other
+            if infix_string[i] in OPERATORS and i != 0:
+                if infix_string[i - 1] == "(":
+                    raise ValueError(MISSING_OPERAND)
+
+            # Raise error if an operator and a parentheses are next to each other
+            if infix_string[i] in OPERATORS and i != len(infix_string) - 1:
+                if infix_string[i + 1] == ")":
+                    raise ValueError(MISSING_OPERAND)
+
+            # Append operator to the list
             infix_list.append(infix_string[i])  # "+"
+
+            # Multiply automatically if an operand is next to a parenthesis
+            # Code snippet needs to be after the ")" has been appended
+            if infix_string[i] == ")" and i != len(infix_string) - 1:
+                if infix_string[i + 1].isnumeric():
+                    infix_list.append("*")
+
+            if infix_string[i] == ")" and i != len(infix_string) - 1:
+                if infix_string[i + 1] == "(":
+                    infix_list.append("*")
+
             num_str = ""
 
+    # Convert to a postfix_list
     for i in infix_list:
 
-        # If the character is an operand,
-        # add it to output
+        # If the character is an operand, add it to output
         if i not in OPERATORS and i != "(" and i != ")":
             postfix_list.append(i)
 
@@ -56,8 +102,7 @@ def infix_to_postfix(tokens):  # Tokens --> ["69+420+666"]
         elif i == "(":
             operators_stack.push(i)
 
-        # If the scanned character is an ')', pop and
-        # output from the stack until and '(' is found
+        # If the scanned character is an ')', pop and output from the stack until and '(' is found
         elif i == ')':
             while (not operators_stack.isEmpty()) and operators_stack.peek() != '(':
                 postfix_list.append(operators_stack.pop())
@@ -104,7 +149,7 @@ def apply_operator(op: str, d1: float, d2: float):
         "+": d1 + d2,
         "-": d2 - d1,
         "*": d1 * d2,
-        "/": nan if d1 == 0 else d2 / d1,
+        "/": DIV_BY_ZERO if d1 == 0 else d2 / d1,
         "^": d2 ** d1
     }
     return op_switcher.get(op, ValueError(OP_NOT_FOUND))
@@ -148,3 +193,8 @@ def i_not_greater(i, operator_stack):
         return True if a <= b else False
     else:
         return False
+
+
+#   Check whether sequence str contains ANY of the items in set. """
+def containsAny(str, set):
+    return 1 in [c in str for c in set]
