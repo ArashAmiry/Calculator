@@ -129,8 +129,8 @@ def eval_postfix(postfix_tokens):
         if i not in OPERATORS:
             operand_stack.push(i)
         elif i in OPERATORS:
-            operand_one = float(operand_stack.pop())
-            operand_two = float(operand_stack.pop())
+            operand_one = Decimal(operand_stack.pop())
+            operand_two = Decimal(operand_stack.pop())
             result = apply_operator(i, operand_one, operand_two)  # (5,5,+) > (10)
             operand_stack.push(result)
     return operand_stack.pop()
