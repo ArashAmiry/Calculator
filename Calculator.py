@@ -36,7 +36,7 @@ def infix_to_postfix(tokens):  # Tokens --> ["69+420+666"]
     num_str = ""
 
     # Raise error if insufficient parentheses or no operators
-    if infix_string.count("(") != infix_string.count(")") or not containsAny(OPERATORS, infix_string):
+    if infix_string.count("(") != infix_string.count(")"):
         raise ValueError(MISSING_OPERATOR)
 
     # Iterate over the expression for conversion
@@ -52,10 +52,14 @@ def infix_to_postfix(tokens):  # Tokens --> ["69+420+666"]
             if num_str != "":  # Append number string to list if not empty
                 infix_list.append(num_str)  # "534"
 
-            # Multiply automatically if an operand is next to a parenthesis
+            # Add multiplication operator if an operand is next to a parenthesis
             if infix_string[i] == "(" and i != 0:
                 if infix_string[i - 1].isnumeric():
                     infix_list.append("*")
+
+            # Raise error if a number contains more than one decimal point
+            if num_str.count(".") > 1:
+                raise ValueError("Using more than one decimal point")
 
             # Raise error if two operators are next to each other
             if infix_string[i] in OPERATORS and i != 0:
