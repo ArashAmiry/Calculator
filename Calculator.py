@@ -40,63 +40,15 @@ def infix_to_postfix(tokens):  # Tokens --> ["69+420+666"]
         raise ValueError(MISSING_OPERATOR)
 
     # Iterate over the expression for conversion
-    for i in range(len(infix_string)):
-
-        # Not an operator and not parenthesis
-        if infix_string[i] not in OPERATORS and infix_string[i] != "(" and infix_string[i] != ")":
-            num_str += str(infix_string[i])
-            if i == len(infix_string) - 1:
-                infix_list.append(num_str)
-        # If i is an operator
-        else:
-            if num_str != "":  # Append number string to list if not empty
-                infix_list.append(num_str)  # "534"
-
-            # Add multiplication operator if an operand is next to a parenthesis
-            if infix_string[i] == "(" and i != 0:
-                if infix_string[i - 1].isnumeric():
-                    infix_list.append("*")
-
-            # Raise error if a number contains more than one decimal point
-            if num_str.count(".") > 1:
-                raise ValueError("Using more than one decimal point")
-
-            # Raise error if two operators are next to each other
-            if infix_string[i] in OPERATORS and i != 0:
-                if infix_string[i - 1] in OPERATORS:
-                    raise ValueError(MISSING_OPERAND)
-
-            # Raise error if last character is an operator
-            if infix_string[i] in OPERATORS and i == len(infix_string) - 1:
-                raise ValueError(MISSING_OPERAND)
-
-            # Raise error if an operator and a parentheses are next to each other
-            if infix_string[i] in OPERATORS and i != 0:
-                if infix_string[i - 1] == "(":
-                    raise ValueError(MISSING_OPERAND)
-
-            # Raise error if an operator and a parentheses are next to each other
-            if infix_string[i] in OPERATORS and i != len(infix_string) - 1:
-                if infix_string[i + 1] == ")":
-                    raise ValueError(MISSING_OPERAND)
-
-            # Append operator to the list
-            infix_list.append(infix_string[i])  # "+"
-
-            # Multiply if an operand is next to a parenthesis
-            # Code snippet needs to be after the ")" has been appended
-            if infix_string[i] == ")" and i != len(infix_string) - 1:
-                if infix_string[i + 1].isnumeric():
-                    infix_list.append("*")
-
-            # Multiply if left and right parenthesis are next to each other
-            if infix_string[i] == ")" and i != len(infix_string) - 1:
-                if infix_string[i + 1] == "(":
-                    infix_list.append("*")
-
-            num_str = ""
+    create_list_of_infix_string(infix_list, infix_string, num_str)
 
     # Convert to a postfix_list
+    convert_infix_list_to_postfix_list(infix_list, operators_stack, postfix_list)
+
+    return postfix_list  # TODO
+
+
+def convert_infix_list_to_postfix_list(infix_list, operators_stack, postfix_list):
     for i in infix_list:
 
         # If the character is an operand, add it to output
@@ -109,9 +61,7 @@ def infix_to_postfix(tokens):  # Tokens --> ["69+420+666"]
 
         # If the scanned character is an ')', pop and output from the stack until and '(' is found
         elif i == ')':
-            while (not operators_stack.isEmpty()) and operators_stack.peek() != '(':
-                postfix_list.append(operators_stack.pop())
-            operators_stack.pop()
+            parentheses_prioritisation(operators_stack, postfix_list)
 
         # An operator is encountered
         else:
@@ -123,7 +73,120 @@ def infix_to_postfix(tokens):  # Tokens --> ["69+420+666"]
     while not operators_stack.isEmpty():
         postfix_list.append(operators_stack.pop())
 
-    return postfix_list  # TODO
+
+def parentheses_prioritisation(operators_stack, postfix_list):
+    while (not operators_stack.isEmpty()) and operators_stack.peek() != '(':
+        postfix_list.append(operators_stack.pop())
+    operators_stack.pop()
+
+
+def create_list_of_infix_string(infix_list, infix_string, num_str):
+    for i in range(len(infix_string)):
+
+        # Not an operator and not parenthesis
+        if infix_string[i] not in OPERATORS and infix_string[i] != "(" and infix_string[i] != ")":
+            num_str = add_to_num_string(i, infix_string, num_str)
+            append_last_operand(i, infix_list, infix_string, num_str)
+
+        # If i is an operator
+        else:
+            add_num_before_operator(infix_list, num_str)
+
+            # Add multiplication operator "*" if an operand is next to a parenthesis
+            add_mult_before_left_bracket(i, infix_list, infix_string)
+
+            error_handler(i, infix_string, num_str)
+
+            # Append operator to the list
+            infix_list.append(infix_string[i])
+
+            # Add multiplication operator "*"ultiply if an operand is next to a parenthesis
+            # Code snippet needs to be after the ")" has been appended
+            append_mult_right_bracket(i, infix_list, infix_string)
+
+            # Add multiplication operator "*" if left and right parenthesis are next to each other
+            mult_two_expr(i, infix_list, infix_string)
+
+            num_str = reset_num_str(num_str)
+
+
+def error_handler(i, infix_string, num_str):
+    # Raise error if a number contains more than one decimal point
+    handle_multiple_decimal_error(num_str)
+    # Raise error if two operators are next to each other
+    handle_operators_error(i, infix_string)
+    # Raise error if last character is an operator
+    handle_lonely_operator_error(i, infix_string)
+    # Raise error if an operator and a parentheses are next to each other
+    handle_operator_after_left_bracket_error(i, infix_string)
+    # Raise error if an operator and a parentheses are next to each other
+    handle_operator_before_right_bracket_error(i, infix_string)
+
+
+def reset_num_str(num_str):
+    num_str = ""
+    return num_str
+
+
+def mult_two_expr(i, infix_list, infix_string):
+    if infix_string[i] == ")" and i != len(infix_string) - 1:
+        if infix_string[i + 1] == "(":
+            infix_list.append("*")
+
+
+def append_mult_right_bracket(i, infix_list, infix_string):
+    if infix_string[i] == ")" and i != len(infix_string) - 1:
+        if infix_string[i + 1].isnumeric():
+            infix_list.append("*")
+
+
+def handle_operator_before_right_bracket_error(i, infix_string):
+    if infix_string[i] in OPERATORS and i != len(infix_string) - 1:
+        if infix_string[i + 1] == ")":
+            raise ValueError(MISSING_OPERAND)
+
+
+def handle_operator_after_left_bracket_error(i, infix_string):
+    if infix_string[i] in OPERATORS and i != 0:
+        if infix_string[i - 1] == "(":
+            raise ValueError(MISSING_OPERAND)
+
+
+def handle_lonely_operator_error(i, infix_string):
+    if infix_string[i] in OPERATORS and i == len(infix_string) - 1:
+        raise ValueError(MISSING_OPERAND)
+
+
+def handle_operators_error(i, infix_string):
+    if infix_string[i] in OPERATORS and i != 0:
+        if infix_string[i - 1] in OPERATORS:
+            raise ValueError(MISSING_OPERAND)
+
+
+def handle_multiple_decimal_error(num_str):
+    if num_str.count(".") > 1:
+        raise ValueError("Using more than one decimal point")
+
+
+def add_mult_before_left_bracket(i, infix_list, infix_string):
+    if infix_string[i] == "(" and i != 0:
+        if infix_string[i - 1].isnumeric():
+            infix_list.append("*")
+
+
+def add_num_before_operator(infix_list, num_str):
+    if num_str != "":  # Append number string to list if not empty
+        infix_list.append(num_str)  # "534"
+
+
+def add_to_num_string(i, infix_string, num_str):
+    num_str += str(infix_string[i])
+    return num_str
+
+
+def append_last_operand(i, infix_list, infix_string, num_str):
+    if i == len(infix_string) - 1:
+        infix_list.append(num_str)
 
 
 # -----  Evaluate RPN expression -------------------
@@ -133,11 +196,15 @@ def eval_postfix(postfix_tokens):
         if i not in OPERATORS:
             operand_stack.push(i)
         elif i in OPERATORS:
-            operand_one = Decimal(operand_stack.pop())
-            operand_two = Decimal(operand_stack.pop())
-            result = apply_operator(i, operand_one, operand_two)  # (5,5,+) > (10)
-            operand_stack.push(result)
+            math_operation_on_operands(i, operand_stack)
     return operand_stack.pop()
+
+
+def math_operation_on_operands(i, operand_stack):
+    operand_one = Decimal(operand_stack.pop())
+    operand_two = Decimal(operand_stack.pop())
+    result = apply_operator(i, operand_one, operand_two)  # (5,5,+) > (10)
+    operand_stack.push(result)
 
 
 # Method used in REPL
@@ -171,19 +238,19 @@ def get_precedence(op: str):
     return op_switcher.get(op, ValueError(OP_NOT_FOUND))
 
 
-class Assoc(Enum):
-    LEFT = 1
-    RIGHT = 2
+# class Assoc(Enum):
+#     LEFT = 1
+#     RIGHT = 2
 
 
-def get_associativity(op: str):
-    if op in "+-*/":
-        return Assoc.LEFT
-    elif op in "^":
-        return Assoc.RIGHT
-    else:
-        return ValueError(OP_NOT_FOUND)
-
+# def get_associativity(op: str):
+#     if op in "+-*/":
+#         return Assoc.LEFT
+#     elif op in "^":
+#         return Assoc.RIGHT
+#     else:
+#         return ValueError(OP_NOT_FOUND)
+#
 
 # ---------- Tokenize -----------------------
 def tokenize(expr: str):
